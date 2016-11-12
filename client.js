@@ -12,18 +12,18 @@ const ipbytes = require('./utils').ipbytes;
 const CMD = require('./constants').CMD;
 const ATYP = require('./constants').ATYP;
 const DEFAULTS = {
-        socket: {
+    socket: {
 
-        },
-        proxy: {
-            port: 1080,
-        },
-        dns: {
-            local: false,
-            strict: false
-        },
-        auth: false
-    };
+    },
+    proxy: {
+        port: 1080,
+    },
+    dns: {
+        local: false,
+        strict: false
+    },
+    auth: false
+};
 
 module.exports = class Socks5Socket extends EventEmitter {
 
@@ -45,13 +45,13 @@ module.exports = class Socks5Socket extends EventEmitter {
         self.socket = new net.Socket();
 
         // Bind to socket
-        self.socket.on('connect', function () {
+        self.socket.on('connect', function() {
             connectSocks(self);
-        }).on('close', function (isErr) {
+        }).on('close', function(isErr) {
             var a = ['close'];
             for (var i in arguments) a.push(arguments[i]);
             self.emit.apply(self, a);
-        }).on('end', function () {
+        }).on('end', function() {
             var a = ['end'];
             for (var i in arguments) a.push(arguments[i]);
             self.emit.apply(self, a);
@@ -59,37 +59,37 @@ module.exports = class Socks5Socket extends EventEmitter {
 
         self.options = extend(true, {}, DEFAULTS, options);
 
-        self.auth = self.options.auth === false
-                ? require('./auth/None.js')()
-                : require('./auth/UserPassword.js')();
+        self.auth = self.options.auth === false ?
+            require('./auth/None.js')() :
+            require('./auth/UserPassword.js')();
     }
 
     connect(a, b, c) {
         var options = {},
-            cb = function () {},
+            cb = function() {},
             self = this;
 
         // Normailize arguments
         switch (typeof a) {
-        case "string":
-            options.host = a;
-            switch (typeof b) {
-            case "number":
             case "string":
-                options.port = b;
+                options.host = a;
+                switch (typeof b) {
+                    case "number":
+                    case "string":
+                        options.port = b;
+                        break;
+                    case "function":
+                        cb = b;
+                        break;
+                }
+                if (typeof c == "function")
+                    cb = c;
                 break;
-            case "function":
-                cb = b;
+            case "object":
+                options = a;
+                if (typeof b == "function")
+                    cb = b;
                 break;
-            }
-            if (typeof c == "function")
-                cb = c;
-            break;
-        case "object":
-            options = a;
-            if (typeof b == "function")
-                cb = b;
-            break;
         }
 
         if (Object.keys(options).length > 0) {
@@ -105,19 +105,20 @@ module.exports = class Socks5Socket extends EventEmitter {
 
         self.parser = new Parser(self.socket);
 
-        self.parser.once('connect', function () {
-            self.socket.on('lookup', function () {
+        self.parser.once('connect', function() {
+            self.socket.on('lookup', function() {
                 self.emit('lookup');
-            }).on('data', function (chunk) {
+            }).on('data', function(chunk) {
                 self.emit('data', chunk)
-            }).on('drain', function () {
+            }).on('drain', function() {
                 self.emit('drain');
             })
 
-            self.emit('connect');
+            self.emit('connect', self.socket);
             if (typeof cb === 'function')
                 cb();
 
+            self.ready = true;
             self.socket.resume();
         });
 
@@ -135,8 +136,10 @@ module.exports = class Socks5Socket extends EventEmitter {
                     self.options.socket.host = addr;
                 self.socket.connect(self.options.proxy);
             });
-        } else
+        } else {
+            console.log(self.options);
             self.socket.connect(self.options.proxy);
+        }
 
         return this;
     }
@@ -155,7 +158,7 @@ module.exports = class Socks5Socket extends EventEmitter {
     };
 
     address() {
-    	return this.socket.address.apply(this.socket, arguments);
+        return this.socket.address.apply(this.socket, arguments);
     };
 
     cork() {
@@ -187,7 +190,7 @@ module.exports = class Socks5Socket extends EventEmitter {
     };
 
     destroySoon() {
-    	this.socket.destroySoon.apply(this.socket, arguments);
+        this.socket.destroySoon.apply(this.socket, arguments);
     };
 
     setEncoding(encoding) {
@@ -195,7 +198,11 @@ module.exports = class Socks5Socket extends EventEmitter {
     };
 
     write(data, encoding, cb) {
-        return this.socket.write.apply(this.socket, arguments);
+        try {
+            return this.socket.write.apply(this.socket, arguments);
+        } catch (e) {
+            console.log(data.toString());
+        }
     };
 
     read(size) {
@@ -236,13 +243,6 @@ function connectSocks(self) {
         self.emit('error', err);
         if (self.socket.writable)
             self.socket.end();
-    }).on('ready', function(repInfo) {
-        self.socket.on('data', function (data) {
-            self.emit('data', data);
-        })
-        self.ready = true;
-        self.emit('connect', self.socket);
-        self.socket.resume();
     });
 }
 
@@ -263,12 +263,12 @@ function sendConnectCmd(self) {
 
     var boof = Buffer.concat([
         new Buffer([0x05, CMD.CONNECT, 0x00]),
-        iptype === 0
-            ? new Buffer([ATYP.NAME, sopts.host.length])
-            : new Buffer([iptype === 4 ? ATYP.IPv4 : ATYP.IPv6]),
-        iptype === 0
-            ? new Buffer(sopts.host)
-            : new Buffer(ipbytes(sopts.host)),
+        iptype === 0 ?
+        new Buffer([ATYP.NAME, sopts.host.length]) :
+        new Buffer([iptype === 4 ? ATYP.IPv4 : ATYP.IPv6]),
+        iptype === 0 ?
+        new Buffer(sopts.host) :
+        new Buffer(ipbytes(sopts.host)),
         buf
     ]);
 

@@ -20,8 +20,9 @@ socket.on('connect', function () {
 
 ```
 
-`socks.Socket` can be treated as a regular `net.Socket` in most cases, and
-as a basic (only supports `createConnection`) `http.Agent` as well:
+`socks.Socket` can be treated as a regular `net.Socket` in most cases. If you
+need an `Agent`, use `socks.HttpAgent` and `socks.HttpsAgent` depending on
+the protocol:
 
 ```js
 const request = require('request');
@@ -29,7 +30,7 @@ const socks = require('socksv5');
 
 request({
     url: 'http://google.com/',
-    agentClass: socks.Socket,
+    agentClass: socks.HttpAgent,
     agentOptions: {
         proxy: {
             host: 'myproxy.com'

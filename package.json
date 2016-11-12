@@ -1,0 +1,34 @@
+{
+  "name": "socksv5",
+  "version": "0.1.0",
+  "author": "Lemons",
+  "description": "SOCKS protocol version 5 server and client implementations for node.js",
+  "main": "./index",
+  "dependencies": {
+    "extend": "^3.0.0",
+    "ipcheck": "^0.1.0",
+    "ipv6": "^3.1.3"
+  },
+  "bundledDependencies": [
+    "ipv6"
+  ],
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "keywords": [
+    "socks",
+    "socks5",
+    "socksv5",
+    "proxy"
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/mscdex/socksv5/raw/master/LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/mscdex/socksv5.git"
+  }
+}

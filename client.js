@@ -137,7 +137,6 @@ module.exports = class Socks5Socket extends EventEmitter {
                 self.socket.connect(self.options.proxy);
             });
         } else {
-            console.log(self.options);
             self.socket.connect(self.options.proxy);
         }
 
@@ -198,11 +197,7 @@ module.exports = class Socks5Socket extends EventEmitter {
     };
 
     write(data, encoding, cb) {
-        try {
-            return this.socket.write.apply(this.socket, arguments);
-        } catch (e) {
-            console.log(data.toString());
-        }
+        return this.socket.write.apply(this.socket, arguments);
     };
 
     read(size) {
